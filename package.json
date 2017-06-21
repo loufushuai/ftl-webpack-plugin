@@ -1,0 +1,43 @@
+{
+  "name": "miaow",
+  "author": {},
+  "main": "lib/miaow.js",
+  "bin": {
+    "miaow": "bin/miaow.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "css-loader": "~0.28.1",
+    "file-loader": "https://github.com/loufushuai/file-loader.git#Branch_v0.11.1",
+    "fs-extra": "^3.0.1",
+    "html-loader": "^0.4.5",
+    "imagemin-webpack-plugin": "~1.4.4",
+    "less": "~2.7.2",
+    "less-loader": "~4.0.3",
+    "loader-utils": "^1.1.0",
+    "postcss-loader": "~2.0.5",
+    "resolve": "^1.3.3",
+    "rimraf": "^2.6.1",
+    "shrink-style-loader": "~0.1.2",
+    "style-loader": "~0.16.1",
+    "url-loader": "~0.5.8",
+    "webpack": "^2.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^1.6.0",
+    "eslint-config-airbnb": "^0.1.0",
+    "mocha": "^2.2.4"
+  },
+  "scripts": {
+    "dev": "webpack",
+    "lint": "eslint lib bin",
+    "postpublish": "cnpm sync miaow",
+    "preversion": "npm run check",
+    "postversion": "git push && git push --tags",
+    "test": "mocha"
+  },
+  "engines": {
+    "node": ">=0.10"
+  }
+}
