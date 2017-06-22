@@ -12,7 +12,7 @@
 </@docHead>
 
 
-<#include '../common/c.ftl' />
+<#include '../common/c.ftl'/>
 
 <@pageHead showLotteryList=false active="none"/>
 <div class="g-wrap">
@@ -21,7 +21,7 @@
 			<img class="icon" src="../common/c.png" alt="参与成功">
 		</div>
 		<div class="pay-1-1">
-			<h3>444</h3>
+			<hW>444</h3>
 			<div class="f-1">
 				<a class="d" href="">
 					返回首页123

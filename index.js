@@ -72,7 +72,7 @@ ftlPlugin.prototype.apply = function(compiler) {
 					}
 					callback();
 			
-				});
+			});
 		});
 
 	});
@@ -93,7 +93,7 @@ ftlPlugin.prototype.entriesSource = function(compilation, compiler) {
 			isEntry: true
 		});
 		//插件来获取资源
-		this.getRequireFtl(compilation, source, currentPath, compiler, v.template);
+		// this.getRequireFtl(compilation, source, currentPath, compiler, v.template);
 	});
 };
 
