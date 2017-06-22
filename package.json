@@ -11,7 +11,7 @@
     "css-loader": "~0.28.1",
     "file-loader": "https://github.com/loufushuai/file-loader.git#Branch_v0.11.1",
     "fs-extra": "^3.0.1",
-    "html-loader": "^0.4.5",
+    "ftl-loader": "https://github.com/loufushuai/ftl-loader.git#master",
     "imagemin-webpack-plugin": "~1.4.4",
     "less": "~2.7.2",
     "less-loader": "~4.0.3",

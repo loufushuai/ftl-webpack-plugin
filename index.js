@@ -310,7 +310,6 @@ ftlPlugin.prototype.getCommonPath = function (ftlPath, currentPath)  {
 
 	// console.log(path.relative(currentPath ,filePath));
 	return path.relative(currentPath ,filePath);
-
 }
 
 ftlPlugin.prototype.getFullTemplatePath = function (template) {

@@ -17,7 +17,7 @@ module.exports = {
 	module: {
 		rules: [{
 			test: /\.ftl$/,
-			use: ['html-loader?attrs[]=img:src&attrs[]=link:href']
+			use: ['ftl-loader?attrs[]=img:src&attrs[]=link:href']
 		},
 		{ 
 			test: /\.(png|css)$/, 
