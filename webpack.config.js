@@ -47,6 +47,7 @@ module.exports = {
 					script: './src/desktop/40x/index.js'
 				}
 			],
+			context: path.resolve('./src'),
 			commons: [
 				'./src/common/base/index.js',
 				'./src/common/core/index.js',
