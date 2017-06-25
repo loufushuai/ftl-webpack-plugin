@@ -18,6 +18,7 @@ function ftlPlugin(options) {
 	this.filesRegex = {};
 	this.commonScripts = '';
 	this.files = [];
+	this.scripts = {};
 }
 
 //webpack 运行时调用 注入compiler对象
@@ -93,7 +94,7 @@ ftlPlugin.prototype.entriesSource = function(compilation, compiler) {
 			isEntry: true
 		});
 		//插件来获取资源
-		// this.getRequireFtl(compilation, source, currentPath, compiler, v.template);
+		this.getRequireFtl(compilation, source, currentPath, compiler, v.template);
 	});
 };
 
@@ -188,6 +189,9 @@ ftlPlugin.prototype.getCommonJS = function (compilation)  {
 				commonJS += `<script src="${publicPath}${chunk.files}"></script>`;
 			}
 		}
+
+		this.scripts[chunk.entryModule.rawRequest] = chunk.files;
+
 	});
 
 	this.commonScripts += `${commonJS}`;
@@ -200,12 +204,9 @@ ftlPlugin.prototype.assetsJs = function (content, script = '', compilation, base
 		commons = this.options.commons;
 
 	publicPath = this.webpackOptions.output.publicPath;
-
-	compilation.chunks.map((chunk) => {
-		if(script && script === chunk.entryModule.rawRequest){
-			entryJS = `<script src="${publicPath}${chunk.files}"></script>`;
-		}
-	});
+	if(script && this.scripts[script]){
+		entryJS = `<script src="${publicPath}${this.scripts[script]}"></script>`;
+	}
 	scripts = `${this.commonScripts}${entryJS}`;
 	content = content.replace(jsInject, scripts);
 
