@@ -3,15 +3,17 @@ const fs = require('fs'),
 	  path = require('path'),
 	  childCompiler = require('./libs/compiler'),
 	  utils = require('./libs/utils'),
-	  compilePath = '/src/',
 	  jsInject = '<#--@miaowjs@-->';
 
 /*参数处理*/
 function ftlPlugin(options) {
+	// let context = this._module && this._module.issuer && this._module.issuer.context;
+	// console.log(context);
 	this.options = Object.assign({}, options, {
 		define: options.define || {},
 		entries: options.entries || [],
-		commons: options.commons || []
+		commons: options.commons || [],
+		context: options.context || path.resolve(__dirname, 'src')
 	});
 	//webpack存储变量
 	this.webpackOptions = {};
@@ -82,12 +84,13 @@ ftlPlugin.prototype.apply = function(compiler) {
 //查找ftl文件
 ftlPlugin.prototype.entriesSource = function(compilation, compiler) {
 	this.options.entries.map((v) => {
-		let ftlPath = path.resolve('.' + compilePath + v.template || ''),
+		let relativePath = path.resolve(this.options.context, v.template),
+			ftlPath = path.resolve(relativePath),
 			currentPath = path.dirname(ftlPath),
 			source = this.getSource(ftlPath);
 
 		this.files.push({
-			path: '.' + compilePath + v.template || '',
+			path: relativePath,
 			source,
 			fileName: v.template,
 			script: v.script,
@@ -236,7 +239,7 @@ ftlPlugin.prototype.getRequireFtl = function (compilation, content, allPath, com
 		}
 
 		let requirePath = path.resolve(allPath, ftlPath),
-			assetsPath = path.relative(__dirname + compilePath, requirePath),
+			assetsPath = path.relative(this.options.context, requirePath),
 			currentPath = path.dirname(path.resolve(requirePath));
 
 		if(compilation.fileDependencies.indexOf(requirePath) > -1) {
@@ -254,7 +257,7 @@ ftlPlugin.prototype.getRequireFtl = function (compilation, content, allPath, com
 			that.filesRegex[fileName][includeRegex] = ftlPath;
 			
 			requirePath = path.resolve(allPath, ftlPath);
-			assetsPath = path.relative(__dirname + compilePath, requirePath);
+			assetsPath = path.relative(this.options.context, requirePath);
 			currentPath = path.dirname(path.resolve(requirePath));
 		}
 
