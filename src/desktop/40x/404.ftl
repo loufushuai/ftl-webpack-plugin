@@ -12,7 +12,7 @@
 </@docHead>
 
 
-<#include '../common/c.ftl'/>
+<#import '../common/c.ftl'/>
 
 <@pageHead showLotteryList=false active="none"/>
 <div class="g-wrap">

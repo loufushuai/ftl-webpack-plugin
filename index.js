@@ -8,7 +8,6 @@ const fs = require('fs'),
 /*参数处理*/
 function ftlPlugin(options) {
 	// let context = this._module && this._module.issuer && this._module.issuer.context;
-	// console.log(context);
 	this.options = Object.assign({}, options, {
 		define: options.define || {},
 		entries: options.entries || [],
@@ -18,8 +17,9 @@ function ftlPlugin(options) {
 	//webpack存储变量
 	this.webpackOptions = {};
 	this.filesRegex = {};
-	this.commonScripts = '';
 	this.files = [];
+	//公共js
+	this.commonScripts = '';
 	this.scripts = {};
 }
 
@@ -41,7 +41,7 @@ ftlPlugin.prototype.apply = function(compiler) {
 
 		that.getCommonJS(compilation);
 
-		that.files.map((v, i) => {
+		Promise.all(that.files.map((v, i) => {
 			let template = v.path,
 				fileName = v.fileName,
 				baseName = utils.getBaseName(template, fileName),
@@ -52,7 +52,7 @@ ftlPlugin.prototype.apply = function(compiler) {
 			//编译
 			compilationPromise = childCompiler.compileTemplate(that.options.templateLoaderName, compiler.context, fileName, compilation);
 
-			Promise.resolve()
+			return Promise.resolve()
 				.then(() => {
 					return compilationPromise;
 				})
@@ -73,9 +73,10 @@ ftlPlugin.prototype.apply = function(compiler) {
 						content = that.processAssets(compilation, template, v.script, baseName);
 						that.assetsJs(content, v.script, compilation, baseName);
 					}
-					callback();
 			
 			});
+		})).then(values => { 
+			callback(); 
 		});
 
 	});
@@ -224,7 +225,7 @@ ftlPlugin.prototype.assetsJs = function (content, script = '', compilation, base
 //ftl入口分析compilation, content, allPath
 ftlPlugin.prototype.getRequireFtl = function (compilation, content, allPath, compiler, fileName)  {
 
-	let matchs = content.match(/<#include\s+(.*?)\s*?\/>/g),
+	let matchs = content.match(/<#(include|import)\s+(.*?)\s*?\/?>/g),
 		that = this;
 
 	matchs && matchs.map((match) => {
@@ -278,9 +279,10 @@ ftlPlugin.prototype.getRequireFtl = function (compilation, content, allPath, com
 //替换路径
 ftlPlugin.prototype.replacePath = function (content, filename) {
 	let that = this;
-	content = content.replace(/<#include\s+[\'\"]([^\.].*?)[\'\"]\s*?\/+>/g, function(match) {
-		let ftlPath = RegExp.$1,
-			includeContent = `<#include "${that.filesRegex[filename][ftlPath] || ftlPath}"/>`;
+	content = content.replace(/<#(include|import)\s+[\'\"]([^\.].*?)[\'\"]/g, function(match) {
+		let attr = RegExp.$1,
+			ftlPath = RegExp.$2,
+			includeContent = `<#${attr} "${that.filesRegex[filename][ftlPath] || ftlPath}"`;
 		return includeContent;
 	});
 	return content;
