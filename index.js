@@ -3,7 +3,8 @@ const fs = require('fs'),
 	  path = require('path'),
 	  childCompiler = require('./libs/compiler'),
 	  utils = require('./libs/utils'),
-	  jsInject = '<#--@miaowjs@-->';
+	  jsInject = '<#--@miaowjs@-->',
+	  cssInject = '<#--@miaowcss@-->';
 
 /*参数处理*/
 function ftlPlugin(options) {

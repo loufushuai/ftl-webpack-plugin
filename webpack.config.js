@@ -20,8 +20,12 @@ module.exports = {
 			use: ['ftl-loader?attrs[]=img:src&attrs[]=link:href']
 		},
 		{ 
-			test: /\.(png|css)$/, 
+			test: /\.(png)$/, 
 			use: "file-loader?name=[path][name].[hash:6].[ext]&replacePath=src/"
+		},
+		{ 
+			test: /\.(less)$/, 
+			use: ["file-loader?name=[path][name].[hash:6].[ext]&replacePath=src/"]
 		},
 		{ 
 			test: /\.(ico)$/, 
