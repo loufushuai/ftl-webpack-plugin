@@ -3,7 +3,6 @@ const fs = require('fs'),
 	  path = require('path'),
 	  childCompiler = require('./libs/compiler'),
 	  utils = require('./libs/utils'),	  
-	  // minify = require('html-minifier').minify,
 	  jsInject = '<#--@miaowjs@-->',
 	  cssInject = '<#--@miaowcss@-->';
 
@@ -14,8 +13,7 @@ function ftlPlugin(options) {
 		define: options.define || {},
 		entries: options.entries || [],
 		commons: options.commons || [],
-		context: options.context || path.resolve(__dirname, 'src'),
-		htmlMinify: options.htmlMinify || false
+		context: options.context || path.resolve(__dirname, 'src')
 	});
 	//webpack存储变量
 	this.webpackOptions = {};
@@ -76,8 +74,6 @@ ftlPlugin.prototype.apply = function(compiler) {
 						that.processAssets(compilation, template, v.script, baseName);
 						that.assetsJs(v.script, compilation, baseName);
 					}
-
-					// that.options.htmlMinify && that.compressHtml(compilation, baseName);
 			
 			});
 		})).then(values => { 
@@ -342,18 +338,6 @@ ftlPlugin.prototype.getFullTemplatePath = function (template) {
 	/([!])([^\/\\][^!\?]+|[^\/\\!?])($|\?.+$)/,
 	function (match, prefix, filepath, postfix) {
 		return prefix + path.resolve(filepath) + postfix;
-	});
-};
-
-ftlPlugin.prototype.compressHtml = function(compilation, baseName) {
-	let htmlFileName = baseName,
-		htmlContent = compilation.assets[baseName].source(),
-		htmlAsset = compilation.assets[baseName];
-
-	compilation.assets[htmlFileName] = Object.assign(htmlAsset, {
-		source: () => {
-			return minify(htmlContent, this.options.htmlMinify);
-		}
 	});
 };
 
