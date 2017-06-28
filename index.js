@@ -37,12 +37,14 @@ ftlPlugin.prototype.apply = function(compiler) {
 
 	compiler.plugin('emit', function(compilation, callback) {
 		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
+		// 获取webpack配置
 		that.webpackOptions = compilation.options;
 
 		that.entriesSource(compilation, compiler);
 
 		that.getCommonJS(compilation);
 
+		//生成favicon
 		if(that.options.favicon) {
 			that.addFileToWebpackAsset(compilation, path.resolve(that.options.context, that.options.favicon), utils.getBaseName(that.options.favicon, null));
 		}
@@ -86,6 +88,10 @@ ftlPlugin.prototype.apply = function(compiler) {
 		});
 
 	});
+
+	compiler.plugin('done', () => {
+	});
+
 }
 
 //查找ftl文件
@@ -206,6 +212,7 @@ ftlPlugin.prototype.getCommonJS = function (compilation)  {
 
 	compilation.chunks.map((chunk) => {
 		for (let i = 0; i < commons.length; i++) {
+			// console.log(chunk.name)
 			if(commons[i] === chunk.entryModule.rawRequest){
 				commonJS += `<script src="${publicPath}${chunk.files}"></script>`;
 			}
@@ -320,15 +327,14 @@ ftlPlugin.prototype.getCommonPath = function (ftlPath, currentPath)  {
 		try {
 			filePath = path.resolve(targetPath + rootPath + ftlPath);
 			isFind = fs.existsSync(filePath);
-
-			if(targetPath == __dirname) {
-				// console.info('停止向上查找目录');
-				isFind = true;
-				return false;
-			}
 						
 			if(!isFind) {
 				targetPath = path.resolve(targetPath, '..');
+				if(targetPath == __dirname) {
+					console.info('没有找到文件' + filePath);
+					isFind = true;
+					return false;
+				}
 			}
 		} catch(e) {
 			console.log(e);

@@ -5,15 +5,13 @@
 	description=""
 >
 <#--@miaowcss@-->
-<link rel="shortcut icon" href="/favicon.ico"/>
-
 <link rel="stylesheet" type="text/css" href="./index.less">
 
 
 </@docHead>
 
 
-<#import '../common/c.ftl'/>
+<#import 'c.ftl'/>
 
 <@pageHead showLotteryList=false active="none"/>
 <div class="g-wrap">
