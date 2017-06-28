@@ -3,8 +3,7 @@ const fs = require('fs'),
 	  path = require('path'),
 	  childCompiler = require('./libs/compiler'),
 	  utils = require('./libs/utils'),	  
-	  jsInject = '<#--@miaowjs@-->',
-	  cssInject = '<#--@miaowcss@-->';
+	  jsInject = '<#--@miaowjs@-->';
 
 /*参数处理*/
 function ftlPlugin(options) {
@@ -14,7 +13,8 @@ function ftlPlugin(options) {
 		entries: options.entries || [],
 		commons: options.commons || [],
 		favicon: options.favicon || {},
-		context: options.context || path.resolve(__dirname, 'src')
+		context: options.context || path.resolve(__dirname, 'src'),
+		commonPath: options.commonPath || 'common'
 	});
 	//webpack存储变量
 	this.webpackOptions = {};
@@ -186,17 +186,15 @@ ftlPlugin.prototype.processAssets = function(compilation, template, script, base
 	let htmlContent = compilation.assets[baseName].source(),
 		defineHeader = '',
 		options = this.options,
-		ftlPath = path.dirname(path.resolve(template)),
-		htmlFileName = baseName,
 		htmlAsset = compilation.assets[baseName];
 
-	for(let key in this.options.define) {
-		defineHeader += `<#assign ${key} = ${this.options.define[key]}/>\n`;
+	for(let key in options.define) {
+		defineHeader += `<#assign ${key} = ${options.define[key]}/>\n`;
 	}
 
 	htmlContent = defineHeader + htmlContent;
 
-	compilation.assets[htmlFileName] = Object.assign(htmlAsset, {
+	compilation.assets[baseName] = Object.assign(htmlAsset, {
 		source: () => {
 			return htmlContent;
 		}
@@ -230,7 +228,6 @@ ftlPlugin.prototype.assetsJs = function (script = '', compilation, baseName)  {
 	let entryJS = '',
 		scripts = '',
 		commons = this.options.commons,
-		htmlFileName = baseName,
 		htmlContent = compilation.assets[baseName].source(),
 		htmlAsset = compilation.assets[baseName];
 
@@ -241,7 +238,7 @@ ftlPlugin.prototype.assetsJs = function (script = '', compilation, baseName)  {
 	scripts = `${this.commonScripts}${entryJS}`;
 	htmlContent = htmlContent.replace(jsInject, scripts);
 
-	compilation.assets[htmlFileName] = Object.assign(htmlAsset, {
+	compilation.assets[baseName] = Object.assign(htmlAsset, {
 		source: () => {
 			return htmlContent;
 		}
@@ -318,14 +315,13 @@ ftlPlugin.prototype.replacePath = function (content, filename) {
 
 //寻找父级common路径
 ftlPlugin.prototype.getCommonPath = function (ftlPath, currentPath)  {
-	let rootPath = '/common/',
-		targetPath = currentPath,
+	let targetPath = currentPath,
 		isFind = false,
 		filePath = ftlPath;
 
 	while (!isFind) {
 		try {
-			filePath = path.resolve(targetPath + rootPath + ftlPath);
+			filePath = path.resolve(targetPath, this.options.commonPath, ftlPath);
 			isFind = fs.existsSync(filePath);
 						
 			if(!isFind) {
