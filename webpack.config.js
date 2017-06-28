@@ -26,11 +26,12 @@ module.exports = {
 		{ 
 			test: /\.(less)$/, 
 			use: ["file-loader?name=[path][name].[hash:6].[ext]&replacePath=src/"]
-		},
-		{ 
-			test: /\.(ico)$/, 
-			use: "file-loader?name=[path][name].[ext]&replacePath=src/"
 		}
+		// ,
+		// { 
+		// 	test: /\.(ico)$/, 
+		// 	use: "file-loader?name=[path][name].[ext]&replacePath=src/"
+		// }
 		]
 	},
 	plugins: [
@@ -41,6 +42,7 @@ module.exports = {
 				'testArray': '["a", "b", "c"]',
 				'testObject': '{"a": "b"}'
 			},
+			favicon: 'favicon.ico',
 			entries: [
 				// {
 				// 	template: 'desktop/share/orders/index.ftl',

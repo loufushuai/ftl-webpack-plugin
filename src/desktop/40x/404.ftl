@@ -5,7 +5,7 @@
 	description=""
 >
 <#--@miaowcss@-->
-<link rel="shortcut icon" href="../../favicon.ico"/>
+<link rel="shortcut icon" href="/favicon.ico"/>
 
 <link rel="stylesheet" type="text/css" href="./index.less">
 

@@ -20,6 +20,7 @@ module.exports = {
 		path: path.resolve(__dirname, 'build'),
 		publicPath: "//pimg1.126.net/caipiao/"
 	},
+	favicon: 'favicon.ico',
 	watch: true,
 	module: {
 		rules: [{

@@ -13,6 +13,7 @@ function ftlPlugin(options) {
 		define: options.define || {},
 		entries: options.entries || [],
 		commons: options.commons || [],
+		favicon: options.favicon || {},
 		context: options.context || path.resolve(__dirname, 'src')
 	});
 	//webpack存储变量
@@ -41,6 +42,10 @@ ftlPlugin.prototype.apply = function(compiler) {
 		that.entriesSource(compilation, compiler);
 
 		that.getCommonJS(compilation);
+
+		if(that.options.favicon) {
+			that.addFileToWebpackAsset(compilation, path.resolve(that.options.context, that.options.favicon), utils.getBaseName(that.options.favicon, null));
+		}
 
 		Promise.all(that.files.map((v, i) => {
 			let template = v.path,
@@ -133,7 +138,12 @@ ftlPlugin.prototype.addFileToWebpackAsset = function(compilation, template, base
 		console.log('Cannot find this file' + filename);
 		return '';
 	}
+	if(source === null || source === undefined) {
+		source = fs.readFileSync(filename);
+	}
+
 	try {
+		//添加依赖
 		compilation.fileDependencies.push(filename);
 		compilation.assets[basename] = {
 			source: () => {
