@@ -20,7 +20,6 @@ module.exports = {
 		path: path.resolve(__dirname, 'build'),
 		publicPath: "//pimg1.126.net/caipiao/"
 	},
-	favicon: 'favicon.ico',
 	watch: true,
 	module: {
 		rules: [{
@@ -45,6 +44,7 @@ module.exports = {
 				'testArray': '["a", "b", "c"]',
 				'testObject': '{"a": "b"}'
 			},
+			favicon: 'favicon.ico',
 			entries: [
 				// {
 				// 	template: 'desktop/share/orders/index.ftl',
@@ -67,13 +67,20 @@ module.exports = {
 ```
 
 
-### 
-
-//入口文件
-entries
-// 公共脚本
-commons
-// 变量替换
-define
-//上下文
-context
+## Options
+- `define`:
+	- 可选
+    - 注入到ftl里的变量
+- `entries`:
+    - 必须
+    - 文件入口
+- `context`:
+    - 必须
+    - 上下文
+- `favicon`:
+    - 可选
+    - favicon.ico 地址 
+- `commons`:
+    - 可选
+    - [Array]
+    - 公共js
