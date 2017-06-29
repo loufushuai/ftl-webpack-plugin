@@ -1,9 +1,8 @@
 #  ftl插件
 ## 功能
 支持 ftl 文件
-支持 ftl 文件中常见的资源引用：<#include /> 
 支持多个模版文件
-支持 watch 功能，一旦模版或是模版依赖的资源变化，需要重新编译，可根据配置来控制是否支持watch
+支持 watch 功能，一旦模版资源变化，需要重新编译，可根据配置来控制是否支持watch
 变量替换类似 __debug__
 
 ## loader使用
@@ -68,15 +67,17 @@ module.exports = {
 
 
 ## Options
-- `define`:
-	- 可选
-    - 注入到ftl里的变量
 - `entries`:
-    - 必须
-    - 文件入口
+    - 必须    
+    - [Object]
+    - ftl文件和js入口  
 - `context`:
     - 必须
     - 上下文
+- `define`:
+	- 可选
+    - [Object]
+    - 注入到ftl里的变量，便于操作
 - `favicon`:
     - 可选
     - favicon.ico 地址 
@@ -84,3 +85,7 @@ module.exports = {
     - 可选
     - [Array]
     - 公共js
+- `publicPath`:
+    - 可选
+    - [String]
+    - css,js路径，默认取webpack配置

@@ -1,3 +1,4 @@
+// ftl-loader
 var _ = require('lodash');
 var loaderUtils = require('loader-utils');
 
