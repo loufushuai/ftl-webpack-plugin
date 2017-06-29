@@ -43,7 +43,7 @@ ftlPlugin.prototype.checkRequiredOptions = function(options) {
 ftlPlugin.prototype.apply = function(compiler) {
 
 	let options = this.options,
-		that = this;
+		self = this;
 
 	compiler.plugin("make", (compilation, callback) => {
 		callback();
@@ -52,48 +52,48 @@ ftlPlugin.prototype.apply = function(compiler) {
 	compiler.plugin('emit', function(compilation, callback) {
 		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
 		// 获取webpack配置
-		that.webpackOptions = compilation.options;
+		self.webpackOptions = compilation.options;
 
-		that.entriesSource(compilation, compiler);
+		self.entriesSource(compilation, compiler);
 
-		that.getCommonJS(compilation);
+		self.getCommonJS(compilation);
 
 		//生成favicon
-		if(that.options.favicon) {
-			that.addFileToWebpackAsset(compilation, path.resolve(that.options.context, that.options.favicon), utils.getBaseName(that.options.favicon, null));
+		if(self.options.favicon) {
+			self.addFileToWebpackAsset(compilation, path.resolve(self.options.context, self.options.favicon), utils.getBaseName(self.options.favicon, null));
 		}
 
-		Promise.all(that.files.map((v, i) => {
+		Promise.all(self.files.map((v, i) => {
 			let template = v.path,
 				fileName = v.fileName,
 				baseName = utils.getBaseName(template, fileName),
 				compilationPromise = null;
 
 			// console.log(template, fileName, baseName);
-			that.options.templateLoaderName = that.getFullTemplatePath(template);
+			self.options.templateLoaderName = self.getFullTemplatePath(template);
 			//编译
-			compilationPromise = childCompiler.compileTemplate(that.options.templateLoaderName, compiler.context, fileName, compilation);
+			compilationPromise = childCompiler.compileTemplate(self.options.templateLoaderName, compiler.context, fileName, compilation);
 
 			return Promise.resolve()
 				.then(() => {
 					return compilationPromise;
 				})
 				.then((compiledTemplate) => {
-					return that.evaluateCompilationResult(compilation, compiledTemplate.content);
+					return self.evaluateCompilationResult(compilation, compiledTemplate.content);
 				}).
 				then((compiledResult) => {
 					let content = '';
 
-					if(that.filesRegex[fileName]) {
-						compiledResult = that.replacePath(compiledResult, fileName);
+					if(self.filesRegex[fileName]) {
+						compiledResult = self.replacePath(compiledResult, fileName);
 					}
 					
-					that.addFileToWebpackAsset(compilation, template, baseName, compiledResult);
+					self.addFileToWebpackAsset(compilation, template, baseName, compiledResult);
 
 					//如果确定是入口文件就注入变量和js
 					if(v.isEntry) {
-						that.processAssets(compilation, template, v.script, baseName);
-						that.assetsJs(v.script, compilation, baseName);
+						self.processAssets(compilation, template, v.script, baseName);
+						self.assetsJs(v.script, compilation, baseName);
 					}
 			
 			});
@@ -174,7 +174,7 @@ ftlPlugin.prototype.addFileToWebpackAsset = function(compilation, template, base
 			}
 		};
 	} catch(e) {
-		console.log(e);
+		console.warn(e);
 	}
 };
 
@@ -189,7 +189,7 @@ ftlPlugin.prototype.getSource = function(template) {
 	try {		
 		source = fs.readFileSync(filename, 'utf-8');
 	} catch(e) {
-		console.log('找不到文件' + filename);
+		console.log(e);
 	}
 
 	return source;
@@ -231,7 +231,6 @@ ftlPlugin.prototype.getCommonJS = function (compilation)  {
 		}
 
 		this.scripts[chunk.entryModule.rawRequest] = chunk.files;
-
 	});
 
 	this.commonScripts += `${commonJS}`;
@@ -265,7 +264,7 @@ ftlPlugin.prototype.assetsJs = function (script = '', compilation, baseName)  {
 ftlPlugin.prototype.getRequireFtl = function (compilation, content, allPath, compiler, fileName)  {
 
 	let matchs = content.match(/<#(include|import)\s+(.*?)\s*?\/?>/g),
-		that = this;
+		self = this;
 
 	matchs && matchs.map((match) => {
 		let includeRegex = /["'](.*?)["']/.test(match);
@@ -291,37 +290,37 @@ ftlPlugin.prototype.getRequireFtl = function (compilation, content, allPath, com
 			if(!ftlPath) {
 				return false;
 			}
-			if(!that.filesRegex[fileName]) {
-				that.filesRegex[fileName] = {};
+			if(!self.filesRegex[fileName]) {
+				self.filesRegex[fileName] = {};
 			} 
-			that.filesRegex[fileName][includeRegex] = ftlPath;
+			self.filesRegex[fileName][includeRegex] = ftlPath;
 			
 			requirePath = path.resolve(allPath, ftlPath);
 			assetsPath = path.relative(this.options.context, requirePath);
 			currentPath = path.dirname(path.resolve(requirePath));
 		}
 
-		let source = that.getSource(requirePath);
+		let source = self.getSource(requirePath);
 
-		that.files.push({
+		self.files.push({
 			path: requirePath,
 			source,
 			fileName: assetsPath,
 			isEntry: false
 		});
 
-		that.getRequireFtl(compilation, source, currentPath, compiler, assetsPath);
+		self.getRequireFtl(compilation, source, currentPath, compiler, assetsPath);
 
 	});
 }
 
 //替换路径
 ftlPlugin.prototype.replacePath = function (content, filename) {
-	let that = this;
+	let self = this;
 	content = content.replace(/<#(include|import)\s+[\'\"]([^\.].*?)[\'\"]/g, function(match) {
 		let attr = RegExp.$1,
 			ftlPath = RegExp.$2,
-			includeContent = `<#${attr} "${that.filesRegex[filename][ftlPath] || ftlPath}"`;
+			includeContent = `<#${attr} "${self.filesRegex[filename][ftlPath] || ftlPath}"`;
 		return includeContent;
 	});
 	return content;
