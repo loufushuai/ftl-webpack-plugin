@@ -5,14 +5,14 @@ const fs = require('fs'),
 	  utils = require('./libs/utils'),	  
 	  jsInject = '<#--@miaowjs@-->';
 
-/*参数处理*/
+/*参数处理 设置默认值*/
 function ftlPlugin(options) {
-	// let context = this._module && this._module.issuer && this._module.issuer.context;
 	this.options = Object.assign({}, options, {
 		define: options.define || {},
 		entries: options.entries || [],
 		commons: options.commons || [],
-		favicon: options.favicon || {},
+		favicon: options.favicon || 'favicon.ico',
+		publicPath: options.publicPath || '',
 		context: options.context || path.resolve(__dirname, 'src'),
 		commonPath: options.commonPath || 'common'
 	});
@@ -46,22 +46,20 @@ ftlPlugin.prototype.apply = function(compiler) {
 		self = this;
 
 	compiler.plugin("make", (compilation, callback) => {
-		callback();
-	});
-
-	compiler.plugin('emit', function(compilation, callback) {
-		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
 		// 获取webpack配置
 		self.webpackOptions = compilation.options;
 
+		callback();
+	});
+
+	//编译器开始输出生成资源
+	compiler.plugin('emit', function(compilation, callback) {
+		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
 		self.entriesSource(compilation, compiler);
 
 		self.getCommonJS(compilation);
 
-		//生成favicon
-		if(self.options.favicon) {
-			self.addFileToWebpackAsset(compilation, path.resolve(self.options.context, self.options.favicon), utils.getBaseName(self.options.favicon, null));
-		}
+		self.emitFavicon(compilation);
 
 		Promise.all(self.files.map((v, i) => {
 			let template = v.path,
@@ -108,25 +106,34 @@ ftlPlugin.prototype.apply = function(compiler) {
 
 }
 
+
+//生成icon，为什么这样还要单独写下，因为ftl引用icon路径是 /xxx.ico 生成路径不好搞
+ftlPlugin.prototype.emitFavicon = function(compilation) {
+	let { options } = this;
+	if(options.favicon) {
+		this.addFileToWebpackAsset(compilation, path.resolve(options.context, options.favicon), utils.getBaseName(options.favicon));
+	}
+}
+
 //查找ftl文件
 ftlPlugin.prototype.entriesSource = function(compilation, compiler) {
 	this.options.entries.map((v) => {
 		let relativePath = path.resolve(this.options.context, v.template),
 			ftlPath = path.resolve(relativePath),
-			currentPath = path.dirname(ftlPath),
-			source = this.getSource(ftlPath);
+			currentPath = path.dirname(ftlPath);
+			// source = this.getSource(ftlPath);
 
 		this.files.push({
 			path: relativePath,
-			source,
+			// source,
 			fileName: v.template,
 			script: v.script,
 			isEntry: true
 		});
 		//插件来获取资源
-		this.getRequireFtl(compilation, source, currentPath, compiler, v.template);
+		// this.getRequireFtl(compilation, source, currentPath, compiler, v.template);
 	});
-};
+}
 
 //获取source
 ftlPlugin.prototype.evaluateCompilationResult = function(compilation, source) {
@@ -218,18 +225,15 @@ ftlPlugin.prototype.processAssets = function(compilation, template, script, base
 //commonjs查找
 ftlPlugin.prototype.getCommonJS = function (compilation)  {
 	let commonJS = '',
-		commons = this.options.commons;
-
-	publicPath = this.webpackOptions.output.publicPath;
+		commons = this.options.commons,
+		publicPath = this.webpackOptions.output.publicPath || this.options.publicPath;
 
 	compilation.chunks.map((chunk) => {
 		for (let i = 0; i < commons.length; i++) {
-			// console.log(chunk.name)
 			if(commons[i] === chunk.entryModule.rawRequest){
 				commonJS += `<script src="${publicPath}${chunk.files}"></script>`;
 			}
 		}
-
 		this.scripts[chunk.entryModule.rawRequest] = chunk.files;
 	});
 
