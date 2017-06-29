@@ -16,6 +16,8 @@ function ftlPlugin(options) {
 		context: options.context || path.resolve(__dirname, 'src'),
 		commonPath: options.commonPath || 'common'
 	});
+
+	this.checkRequiredOptions(options);
 	//webpack存储变量
 	this.webpackOptions = {};
 	this.filesRegex = {};
@@ -24,6 +26,18 @@ function ftlPlugin(options) {
 	this.commonScripts = '';
 	this.scripts = {};
 }
+
+//检查必要属性
+ftlPlugin.prototype.checkRequiredOptions = function(options) {
+	let requireOptions = ['entries', 'context'],
+		optionsKeys = Object.keys(options);
+
+	requireOptions.map((requireOption) => {
+		if (!~optionsKeys.indexOf(requireOption)) {
+			console.warn('plugin need this attr ' + requireOption);
+		}
+	});
+};
 
 //webpack 运行时调用 注入compiler对象
 ftlPlugin.prototype.apply = function(compiler) {
