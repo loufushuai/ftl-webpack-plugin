@@ -25,7 +25,7 @@ module.exports.compileTemplate = function compileTemplate(template, context, out
 	childCompiler.apply(
 		new NodeTemplatePlugin(outputOptions),
 		new NodeTargetPlugin(),
-		new LibraryTemplatePlugin('HTML_RES_WEBPACK_PLUGIN_RESULT', 'var'),
+		new LibraryTemplatePlugin('FTL_WEBPACK_PLUGIN_RESULT', 'var'),
 		new SingleEntryPlugin(this.context, template),
 		new LoaderTargetPlugin('node')
 	);

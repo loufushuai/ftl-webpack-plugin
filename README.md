@@ -89,3 +89,8 @@ module.exports = {
     - 可选
     - [String]
     - css,js路径，默认取webpack配置
+- `jsInject`:
+    - 可选
+    - [String]
+    - 默认 <#--@miaowjs@-->
+    - js注入标识符
