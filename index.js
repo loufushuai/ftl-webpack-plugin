@@ -13,8 +13,7 @@ function ftlPlugin(options) {
 		commons: options.commons || [],
 		favicon: options.favicon || 'favicon.ico',
 		publicPath: options.publicPath || '',
-		context: options.context || path.resolve(__dirname, 'src'),
-		commonPath: options.commonPath || 'common'
+		context: options.context || path.resolve(__dirname, 'src')
 	});
 
 	this.checkRequiredOptions(options);
@@ -79,11 +78,6 @@ ftlPlugin.prototype.apply = function(compiler) {
 					return self.evaluateCompilationResult(compilation, compiledTemplate.content);
 				}).
 				then((compiledResult) => {
-					let content = '';
-
-					if(self.filesRegex[fileName]) {
-						compiledResult = self.replacePath(compiledResult, fileName);
-					}
 					
 					self.addFileToWebpackAsset(compilation, template, baseName, compiledResult);
 
