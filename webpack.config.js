@@ -44,10 +44,9 @@ module.exports = {
 			},
 			favicon: 'favicon.ico',
 			entries: [
-				// {
-				// 	template: 'desktop/share/orders/index.ftl',
-				// 	script: './src/desktop/share/orders/index.js'
-				// },
+				{
+					template: 'desktop/common/c.ftl'
+				},
 				{
 					template: 'desktop/40x/404.ftl',
 					script: './src/desktop/40x/index.js'

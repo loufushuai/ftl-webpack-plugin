@@ -55,15 +55,14 @@ ftlPlugin.prototype.apply = function(compiler) {
 	//编译器开始输出生成资源
 	compiler.plugin('emit', function(compilation, callback) {
 		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
-		self.entriesSource(compilation, compiler);
-
+		//获取公共js
 		self.getCommonJS(compilation);
-
+		//生成icon
 		self.emitFavicon(compilation);
 
-		Promise.all(self.files.map((v, i) => {
-			let template = v.path,
-				fileName = v.fileName,
+		Promise.all(self.options.entries.map((v, i) => {
+			let template = path.resolve(self.options.context, v.template),
+				fileName = v.template,
 				baseName = utils.getBaseName(template, fileName),
 				compilationPromise = null;
 
@@ -88,11 +87,9 @@ ftlPlugin.prototype.apply = function(compiler) {
 					
 					self.addFileToWebpackAsset(compilation, template, baseName, compiledResult);
 
-					//如果确定是入口文件就注入变量和js
-					if(v.isEntry) {
-						self.processAssets(compilation, template, v.script, baseName);
-						self.assetsJs(v.script, compilation, baseName);
-					}
+					//入口文件注入变量和js
+					self.processAssets(compilation, template, v.script, baseName);
+					self.assetsJs(v.script, compilation, baseName);
 			
 			});
 		})).then(values => { 
@@ -119,8 +116,8 @@ ftlPlugin.prototype.emitFavicon = function(compilation) {
 ftlPlugin.prototype.entriesSource = function(compilation, compiler) {
 	this.options.entries.map((v) => {
 		let relativePath = path.resolve(this.options.context, v.template),
-			ftlPath = path.resolve(relativePath),
-			currentPath = path.dirname(ftlPath);
+			ftlPath = path.resolve(relativePath);
+			// currentPath = path.dirname(ftlPath);
 			// source = this.getSource(ftlPath);
 
 		this.files.push({
