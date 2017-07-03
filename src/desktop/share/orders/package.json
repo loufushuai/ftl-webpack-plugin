@@ -1,9 +1,0 @@
-{
-	"pack": {
-		"name": "index.js",
-		"exclude": [
-			"base",
-			"core"
-		]
-	}
-}

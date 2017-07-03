@@ -1,9 +1,5 @@
 const fs = require('fs'),
-	  vm = require('vm'),
-	  path = require('path'),
-	  childCompiler = require('./libs/compiler'),
-	  utils = require('./libs/utils'),	  
-	  jsInject = '<#--@miaowjs@-->';
+	  path = require('path');
 
 /*参数处理 设置默认值*/
 function ftlPlugin(options) {
@@ -11,23 +7,21 @@ function ftlPlugin(options) {
 		define: options.define || {},
 		entries: options.entries || [],
 		commons: options.commons || [],
-		favicon: options.favicon || 'favicon.ico',
 		publicPath: options.publicPath || '',
-		context: options.context || path.resolve(__dirname, 'src'),
-		jsInjectSign: options.jsInject || jsInject
+		context: options.context
 	});
 
 	this.checkRequiredOptions(options);
 	//webpack存储变量
 	this.webpackOptions = {};
-	//公共js
-	this.commonScripts = '';
+	//js
 	this.scripts = {};
+	this.commonScripts = '';
 }
 
 //检查必要属性
 ftlPlugin.prototype.checkRequiredOptions = function(options) {
-	let requireOptions = ['entries', 'context'],
+	let requireOptions = ['entries'],
 		optionsKeys = Object.keys(options);
 
 	requireOptions.map((requireOption) => {
@@ -55,140 +49,68 @@ ftlPlugin.prototype.apply = function(compiler) {
 		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
 		//获取公共js
 		self.getCommonJS(compilation);
-		//生成icon
-		self.emitFavicon(compilation);
+		//回调
+		callback();
+	});
 
-		Promise.all(options.entries.map((v, i) => {
-			let template = path.resolve(options.context, v.template),
-				fileName = v.template,
-				baseName = utils.getBaseName(template, fileName),
-				compilationPromise = null;
+	//编译器已经输出所有的资源后，开始修改入口ftl文件
+	compiler.plugin('after-emit', function(compilation, callback) {
+		let define = self.getDefine(),
+			context = self.options.context || self.webpackOptions.output.path;
 
-			// console.log(template, fileName, baseName);
-			self.options.templateLoaderName = self.getFullTemplatePath(template);
-			//子编译
-			compilationPromise = childCompiler.compileTemplate(options.templateLoaderName, compiler.context, fileName, compilation);
+		Promise.all(self.options.entries.map((v) => {
 
-			return Promise.resolve()
-				.then(() => {
-					return compilationPromise;
-				})
-				.then((compiledTemplate) => {
-					return self.evaluateCompilationResult(compilation, compiledTemplate.content);
-				}).
-				then((compiledResult) => {
-					//预生成文件
-					self.addFileToWebpackAsset(compilation, template, baseName, compiledResult);
-					//入口文件注入变量和js
-					self.injectDefine(compilation, template, baseName);
-					self.injectJs(v.script, compilation, baseName);		
-			});
+			let filename = path.resolve(context, v.template),
+				entryJS = self.getEntryJS(v.script);
+			
+			return self.writeSource(filename, self.commonScripts + entryJS + define);
 
-		})).then(values => { 
-			callback(); 
+		})).then((data) => {
+			callback();
+		}).catch((error) => {
+			console.log(error);
 		});
 
 	});
 
-	compiler.plugin('done', () => {
-	});
-
 }
 
-//生成icon，为什么这样还要单独写下，因为ftl引用icon路径是 /xxx.ico 生成路径不好搞
-ftlPlugin.prototype.emitFavicon = function(compilation) {
-	let { options } = this;
-	if(options.favicon) {
-		this.addFileToWebpackAsset(compilation, path.resolve(options.context, options.favicon), utils.getBaseName(options.favicon));
-	}
-}
-
-//获取source
-ftlPlugin.prototype.evaluateCompilationResult = function(compilation, source) {
-	if (!source) {
-		return Promise.reject('没有文件');
-	}
-
-	source = source.replace('var FTL_WEBPACK_PLUGIN_RESULT =', '');
-	let template = this.options.template;
-	let vmContext = vm.createContext(Object.assign({}, {HTML_RES_WEBPACK_PLUGIN: true, require: require}, global));
-	let vmScript = new vm.Script(source, {filename: template});
-	// console.log(vmScript);
-	// Evaluate code and cast to string
-	let newSource;
-	try {
-	newSource = vmScript.runInContext(vmContext);
-	} catch (e) {
-	return Promise.reject(e);
-	}
-	return typeof newSource === 'string' || typeof newSource === 'function'
-	? Promise.resolve(newSource)
-	: Promise.reject('The loader "' + this.options.template + '" didn\'t return html.');
-};
-
-//预添加文件
-ftlPlugin.prototype.addFileToWebpackAsset = function(compilation, template, basename, source) {
-	let filename = path.resolve(template);
-	if(!fs.existsSync(filename)) {
-		console.log('Cannot find this file' + filename);
-		return '';
-	}
-	if(source === null || source === undefined) {
-		source = fs.readFileSync(filename);
-	}
-
-	try {
-		//添加依赖
-		compilation.fileDependencies.push(filename);
-		compilation.assets[basename] = {
-			source: () => {
-				return source;
-			},
-			size: () => {
-				return source.length;
+//写入文件内容
+ftlPlugin.prototype.writeSource = function(filename, define = '') {
+	return new Promise(function(resolve, reject) {
+		fs.readFile(filename, 'utf8', (error, data) => {
+			if (error) {
+				reject(error);
+				return;
 			}
-		};
-	} catch(e) {
-		console.warn(e);
-	}
-};
-
-//获取文件内容
-ftlPlugin.prototype.getSource = function(template) {
-	let source = '',
-		filename = path.resolve(template);;
-	if(!fs.existsSync(filename)) {
-		console.log('Cannot find this file' + filename);
-		return '';
-	}
-	try {		
-		source = fs.readFileSync(filename, 'utf-8');
-	} catch(e) {
-		console.log(e);
-	}
-
-	return source;
+			fs.writeFile(filename, define + data, (error) => {
+				if (error) {
+					reject(error);
+					return;
+				}
+				resolve('write success');
+			});
+		});
+	}).catch((error) => {
+		console.log(error);
+	});
 };
 
 //注入变量
-ftlPlugin.prototype.injectDefine = function(compilation, template, baseName) {
-	let htmlContent = compilation.assets[baseName].source(),
-		defineHeader = '',
-		{ options } = this,
-		htmlAsset = compilation.assets[baseName];
+ftlPlugin.prototype.getDefine = function() {
+	let defineHeader = '',
+		{ options } = this;
 
 	for(let key in options.define) {
-		defineHeader += `<#assign ${key} = ${options.define[key]}/>\n`;
+		defineHeader += this.assignftl(key, options.define[key]);
 	}
 
-	htmlContent = defineHeader + htmlContent;
+	return defineHeader;
+}
 
-	compilation.assets[baseName] = Object.assign(htmlAsset, {
-		source: () => {
-			return htmlContent;
-		}
-	});
-};
+ftlPlugin.prototype.assignftl = function(key = '', content = '') {
+	return `<#assign ${key} = ${content}/>\n`;
+}
 
 //commonjs查找
 ftlPlugin.prototype.getCommonJS = function (compilation)  {
@@ -197,50 +119,38 @@ ftlPlugin.prototype.getCommonJS = function (compilation)  {
 		publicPath = this.webpackOptions.output.publicPath || this.options.publicPath;
 
 	compilation.chunks.map((chunk) => {
-		for (let i = 0; i < commons.length; i++) {
-			if(commons[i] === chunk.entryModule.rawRequest){
-				commonJS += `<script src="${publicPath}${chunk.files}"></script>`;
-			}
-		}
 		this.scripts[chunk.entryModule.rawRequest] = chunk.files;
 	});
 
-	this.commonScripts += `${commonJS}`;
+	for (let i = 0; i < commons.length; i++) {
+		let chunkFile = this.scripts[commons[i]];
+		if(chunkFile){
+			commonJS += (i == commons.length - 1)?`"${publicPath}${chunkFile}"`:`"${publicPath}${chunkFile}",`;
+		}
+	}
+		
+	this.commonScripts = this.assignftl('commonScrpts', '[' + commonJS + ']');
 }
 
 //插入js
-ftlPlugin.prototype.injectJs = function (script = '', compilation, baseName)  {
+ftlPlugin.prototype.getEntryJS = function (script = '')  {
 	let entryJS = '',
-		scripts = '',
-		commons = this.options.commons,
-		htmlContent = compilation.assets[baseName].source(),
-		htmlAsset = compilation.assets[baseName];
+		publicPath = this.webpackOptions.output.publicPath || this.options.publicPath;
 
-	publicPath = this.webpackOptions.output.publicPath;
-	if(script && this.scripts[script]){
-		entryJS = `<script src="${publicPath}${this.scripts[script]}"></script>`;
-	}
-	scripts = `${this.commonScripts}${entryJS}`;
-	htmlContent = htmlContent.replace(jsInject, scripts);
-
-	compilation.assets[baseName] = Object.assign(htmlAsset, {
-		source: () => {
-			return htmlContent;
+	if(Array.isArray(script)) {
+		for (let i = 0; i < script.length; i++) {
+			if(this.scripts[script[i]]){
+				entryJS += (i == script.length - 1)?`"${publicPath}${this.scripts[script[i]]}"`:`"${publicPath}${this.scripts[script[i]]}",`;
+			}
 		}
-	});
+	} else {
+		if(script && this.scripts[script]){
+			entryJS = `"${publicPath}${this.scripts[script]}"`;
+		}
+	}
+	
+	return this.assignftl('entryScrpts', '[' + entryJS + ']');
 
 }
-
-ftlPlugin.prototype.getFullTemplatePath = function (template) {
-	if (template.indexOf('!') === -1) {
-		template = require.resolve('./libs/loader.js') + '!' + template;
-	}
-
-	return template.replace(
-	/([!])([^\/\\][^!\?]+|[^\/\\!?])($|\?.+$)/,
-	function (match, prefix, filepath, postfix) {
-		return prefix + path.resolve(filepath) + postfix;
-	});
-};
 
 module.exports = ftlPlugin;
