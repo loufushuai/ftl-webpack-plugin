@@ -3,13 +3,13 @@ const plugin = require('./index');
 
 module.exports = {
 	entry: {
-		'desktop/40x/index': './src/desktop/40x/index.js',
-		'common/base': './src/common/base/index.js',
-		'common/core': './src/common/core/index.js'
+		'desktop/40x/index': './examples/src/desktop/40x/index.js',
+		'common/base': './examples/src/common/base/index.js',
+		'common/core': './examples/src/common/core/index.js'
 	},
 	output: {
 		filename: '[name].[chunkhash:10].js',
-		path: path.resolve(__dirname, 'build'),
+		path: path.resolve(__dirname, 'examples/build'),
 		publicPath: "//cdn.123.net/caipiao/"
 	},
 	watch: true,
@@ -48,12 +48,12 @@ module.exports = {
 				},
 				{
 					template: 'desktop/40x/404.ftl',
-					script: ['./src/desktop/40x/index.js']
+					script: ['./examples/src/desktop/40x/index.js']
 				}
 			],
 			commons: [
-				'./src/common/base/index.js',
-				'./src/common/core/index.js',
+				'./examples/src/common/base/index.js',
+				'./examples/src/common/core/index.js',
 			]
 		})
 	]
