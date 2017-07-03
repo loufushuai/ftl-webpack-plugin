@@ -4,6 +4,7 @@
 支持多个模版文件
 支持 watch 功能，一旦模版资源变化，需要重新编译，可根据配置来控制是否支持watch
 变量替换类似 __debug__
+注入js
 
 ## loader使用
 
@@ -11,7 +12,7 @@
 module.exports = {
 	entry: {
 		'desktop/40x/index': './src/desktop/40x/index.js',
-		'common/base': './src/common/base/index.js',
+		'common/a': './src/common/base/index.js',
 		'common/core': './src/common/core/index.js'
 	},
 	output: {

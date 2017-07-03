@@ -1,6 +1,5 @@
 const path = require('path');
 const plugin = require('./index');
-// const loader = require('./ftl-loader');
 
 module.exports = {
 	entry: {
