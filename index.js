@@ -67,6 +67,8 @@ ftlPlugin.prototype.apply = function(compiler) {
 
 		})).then((data) => {
 			callback();
+		}, (data) => {
+			callback();
 		}).catch((error) => {
 			console.log(error);
 		});
@@ -81,18 +83,16 @@ ftlPlugin.prototype.writeSource = function(filename, define = '') {
 		fs.readFile(filename, 'utf8', (error, data) => {
 			if (error) {
 				reject(error);
-				return;
+				return error;
 			}
 			fs.writeFile(filename, define + data, (error) => {
 				if (error) {
 					reject(error);
-					return;
+					return error;
 				}
 				resolve('write success');
 			});
 		});
-	}).catch((error) => {
-		console.log(error);
 	});
 };
 
