@@ -88,8 +88,8 @@ module.exports = {
 
 ## 输出
 ```
-<#assign commonScrpts = ["//cdn.123.net/caipiao/common/base.c17615e16c.js","//cdn.123.net/caipiao/common/core.db82284ca8.js"]/>
-<#assign entryScrpts = ["//cdn.123.net/caipiao/desktop/40x/index.685984b54b.js"]/>
+<#assign commonScripts = ["//cdn.123.net/caipiao/common/base.c17615e16c.js","//cdn.123.net/caipiao/common/core.db82284ca8.js"]/>
+<#assign entryScripts = ["//cdn.123.net/caipiao/desktop/40x/index.685984b54b.js"]/>
 <#assign __debug__ = true/>
 <#assign test = "dd"/>
 <#assign testArray = ["a", "b", "c"]/>

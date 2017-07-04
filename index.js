@@ -129,7 +129,7 @@ ftlPlugin.prototype.getCommonJS = function (compilation)  {
 		}
 	}
 		
-	this.commonScripts = this.assignftl('commonScrpts', '[' + commonJS + ']');
+	this.commonScripts = this.assignftl('commonScripts', '[' + commonJS + ']');
 }
 
 //插入js
@@ -149,7 +149,7 @@ ftlPlugin.prototype.getEntryJS = function (script = '')  {
 		}
 	}
 	
-	return this.assignftl('entryScrpts', '[' + entryJS + ']');
+	return this.assignftl('entryScripts', '[' + entryJS + ']');
 
 }
 
