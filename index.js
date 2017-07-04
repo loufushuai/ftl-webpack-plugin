@@ -48,7 +48,8 @@ ftlPlugin.prototype.apply = function(compiler) {
 	compiler.plugin('emit', function(compilation, callback) {
 		// console.log(JSON.stringify(compilation.getStats().toJson(), null, 2));
 		//获取公共js
-		self.getCommonJS(compilation);
+		self.buildChunks(compilation);
+		self.commonScripts = self.getScripts(self.options.commons, 'commonScripts');
 		//回调
 		callback();
 	});
@@ -61,13 +62,15 @@ ftlPlugin.prototype.apply = function(compiler) {
 		Promise.all(self.options.entries.map((v) => {
 
 			let filename = path.resolve(context, v.template),
-				entryJS = self.getEntryJS(v.script);
+				entryJS = self.getScripts(v.script, 'entryScripts');
 			
 			return self.writeSource(filename, self.commonScripts + entryJS + define);
 
 		})).then((data) => {
 			callback();
 		}, (data) => {
+			//reject
+			console.log(data);
 			callback();
 		}).catch((error) => {
 			console.log(error);
@@ -82,15 +85,13 @@ ftlPlugin.prototype.writeSource = function(filename, define = '') {
 	return new Promise(function(resolve, reject) {
 		fs.readFile(filename, 'utf8', (error, data) => {
 			if (error) {
-				reject(error);
-				return error;
+				return reject(error);
 			}
 			fs.writeFile(filename, define + data, (error) => {
 				if (error) {
-					reject(error);
-					return error;
+					return reject(error);
 				}
-				resolve('write success');
+				resolve();
 			});
 		});
 	});
@@ -113,7 +114,7 @@ ftlPlugin.prototype.assignftl = function(key = '', content = '') {
 }
 
 //commonjs查找
-ftlPlugin.prototype.getCommonJS = function (compilation)  {
+ftlPlugin.prototype.buildChunks = function (compilation)  {
 	let commonJS = '',
 		commons = this.options.commons,
 		publicPath = this.webpackOptions.output.publicPath || this.options.publicPath;
@@ -121,35 +122,28 @@ ftlPlugin.prototype.getCommonJS = function (compilation)  {
 	compilation.chunks.map((chunk) => {
 		this.scripts[chunk.entryModule.rawRequest] = chunk.files;
 	});
-
-	for (let i = 0; i < commons.length; i++) {
-		let chunkFile = this.scripts[commons[i]];
-		if(chunkFile){
-			commonJS += (i == commons.length - 1)?`"${publicPath}${chunkFile}"`:`"${publicPath}${chunkFile}",`;
-		}
-	}
-		
-	this.commonScripts = this.assignftl('commonScripts', '[' + commonJS + ']');
 }
 
 //插入js
-ftlPlugin.prototype.getEntryJS = function (script = '')  {
-	let entryJS = '',
+ftlPlugin.prototype.getScripts = function (script = '', key = '')  {
+	let scriptAssign = '',
 		publicPath = this.webpackOptions.output.publicPath || this.options.publicPath;
 
 	if(Array.isArray(script)) {
 		for (let i = 0; i < script.length; i++) {
-			if(this.scripts[script[i]]){
-				entryJS += (i == script.length - 1)?`"${publicPath}${this.scripts[script[i]]}"`:`"${publicPath}${this.scripts[script[i]]}",`;
+			let chunkFile = this.scripts[script[i]];
+			if(chunkFile){
+				scriptAssign += (i == script.length - 1)?`"${publicPath}${chunkFile}"`:`"${publicPath}${chunkFile}",`;
 			}
 		}
 	} else {
-		if(script && this.scripts[script]){
-			entryJS = `"${publicPath}${this.scripts[script]}"`;
+		let chunkFile = this.scripts[script];
+		if(chunkFile){
+			scriptAssign = `"${publicPath}${chunkFile}"`;
 		}
 	}
 	
-	return this.assignftl('entryScripts', '[' + entryJS + ']');
+	return this.assignftl(key, '[' + scriptAssign + ']');
 
 }
 
